@@ -68,28 +68,39 @@
             for (let i = 0; i < MAX_RETRIES; i++) {
                 try {
                     const response = await fetch(url, options);
+                    
                     if (response.ok) {
-                        return response;
+                        return response; // Success, return response object
                     }
 
                     // For 403 or 500 series errors, apply backoff and retry
                     if (response.status === 403 || response.status >= 500) {
-                        const delay = Math.pow(2, i) * 1000;
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        continue; 
+                        if (i < MAX_RETRIES - 1) {
+                            // Backoff delay
+                            const delay = Math.pow(2, i) * 1000;
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            continue; // Retry
+                        }
+                        // If it's the last attempt and fails, throw the specific error
+                        throw new Error(`Final HTTP status failure: ${response.status}`);
                     }
                     
-                    // If it's another non-retryable error (e.g., 400 Bad Request, 404 Not Found)
-                    throw new Error(`HTTP status: ${response.status}`);
+                    // If it's another non-retryable error (e.g., 400 Bad Request), throw immediately
+                    throw new Error(`Non-retryable HTTP status: ${response.status}`);
 
                 } catch (error) {
+                    // This handles network errors (e.g., connection issues)
                     if (i === MAX_RETRIES - 1) {
-                        throw error; // Throw after final attempt
+                        // Throw after final network attempt
+                        throw new Error(`Network failure after ${MAX_RETRIES} retries: ${error.message}`);
                     }
+                    // Backoff delay for network error
                     const delay = Math.pow(2, i) * 1000;
                     await new Promise(resolve => setTimeout(resolve, delay));
                 }
             }
+            // This line ensures the function never implicitly returns undefined.
+            throw new Error("Failed to fetch content after all retries.");
         }
 
         async function generateScenario() {
@@ -118,12 +129,14 @@
             };
             
             try {
+                // response is guaranteed to be a valid Response object or an error is thrown
                 const response = await fetchWithRetry(GEMINI_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
+                // Since response is guaranteed to be defined here, the TypeError is fixed.
                 const result = await response.json();
                 const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
@@ -131,16 +144,22 @@
                     const scenario = JSON.parse(jsonText);
                     renderScenario(scenario);
                 } else {
-                    resultDiv.innerHTML = '<div class="p-4 text-red-600 fade-in"><i class="fas fa-exclamation-triangle"></i> Error: Could not parse scenario. Try again.</div>';
+                    resultDiv.innerHTML = '<div class="p-4 text-red-600 fade-in"><i class="fas fa-exclamation-triangle"></i> Error: Could not parse scenario. Try generating again.</div>';
                 }
             } catch (error) {
                 console.error("API call error:", error);
-                // Update error message to be more explicit about a potential 403 error
+                
+                // Detailed error handling for the user
                 let displayError = 'Failed to connect. Check console or try again.';
                 if (error.message.includes('403')) {
-                     displayError = '<span class="text-red-800 font-bold">Access Denied (403).</span> Please check API key permissions or try refreshing the environment.';
+                     displayError = '<span class="text-red-800 font-bold">Access Denied (403).</span> The API key is likely missing or invalid for this environment. Scenario generation cannot proceed.';
+                } else if (error.message.includes('Network failure')) {
+                     displayError = 'Network failure. Please check your internet connection.';
+                } else if (error.message.includes('Final HTTP status failure')) {
+                     displayError = `Request failed after all retries. Status: ${error.message.split(': ').pop()}`;
                 }
-                resultDiv.innerHTML = `<div class="p-4 text-red-600 fade-in"><i class="fas fa-plug"></i> ${displayError}</div>`;
+
+                resultDiv.innerHTML = `<div class="p-4 bg-red-100 border-l-4 border-red-500 text-red-900 rounded-lg fade-in"><i class="fas fa-exclamation-circle mr-2"></i> ${displayError}</div>`;
             } finally {
                 button.disabled = false;
             }
@@ -311,7 +330,7 @@
 
         <!-- Module 3: Organizational & Personal Skills -->
         <section id="personal-skills" class="lg:col-span-3 skill-section p-6 skill-card border-t-4 border-yellow-500">
-            <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center">
+            <h2 class="2xl font-bold text-gray-800 section-header flex items-center">
                 <i class="fas fa-user-check mr-2 text-yellow-600"></i> Organizational & Personal Skills
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
