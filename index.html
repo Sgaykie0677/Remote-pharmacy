@@ -1,123 +1,384 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Remote Pharmacy Tech Skills & Practice Hub</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-  <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
-    .skill-card { transition: transform 0.2s, box-shadow 0.2s; background-color: white; border-radius: 12px; }
-    .skill-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
-    .section-header { border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
-    .fade-in { animation: fadeIn 0.5s ease-in-out; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remote Pharmacy Tech Skills & Practice Hub</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+        .skill-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            background-color: white;
+            border-radius: 12px;
+        }
+        .skill-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .section-header {
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        /* Custom scrollbar for the result area */
+        #scenario-result::-webkit-scrollbar {
+            width: 8px;
+        }
+        #scenario-result::-webkit-scrollbar-thumb {
+            background-color: #a8a8a8;
+            border-radius: 4px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .error-box {
+            background-color: #fef2f2; /* Red 50 */
+            border-left: 4px solid #ef4444; /* Red 500 */
+            color: #991b1b; /* Red 800 */
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body class="p-4 sm:p-8">
 
-<header class="bg-indigo-700 text-white p-6 rounded-t-xl shadow-2xl mb-8">
-  <h1 class="text-3xl sm:text-4xl font-extrabold flex items-center">
-    <i class="fas fa-user-tie mr-3"></i> Remote Pharmacy Technician Skill Hub
-  </h1>
-  <p class="text-indigo-200 mt-1">Mastering technical, communicative, and personal skills for Telepharmacy success.</p>
-</header>
+    <script type="module">
+        // --- GEMINI API INTEGRATION for Communication Scenario Generator ---
+        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
+        const API_KEY = ""; // Canvas environment provides this if empty
 
-<main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        // Structured JSON schema for communication scenarios
+        const scenarioSchema = {
+            type: "OBJECT",
+            properties: {
+                scenarioTitle: { "type": "STRING", "description": "A concise title for the scenario (e.g., Rejected Claim Due to PA)." },
+                patientIssue: { "type": "STRING", "description": "A brief, realistic description of the patient's problem or emotional state." },
+                technicianTask: { "type": "STRING", "description": "A clear, actionable instruction for the remote tech on what they need to communicate (e.g., Explain the PA process and next steps, Handle patient anger professionally)." },
+                suggestedOpening: { "type": "STRING", "description": "A suggested first line of professional communication for the technician." }
+            },
+            required: ["scenarioTitle", "patientIssue", "technicianTask", "suggestedOpening"]
+        };
 
-  <!-- Module 1: Dosage Calculations -->
-  <section class="lg:col-span-1 skill-section p-6 skill-card border-t-4 border-indigo-500">
-    <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center">
-      <i class="fas fa-calculator mr-2 text-indigo-500"></i> Technical Proficiency
-    </h2>
-    <h3 class="text-lg font-semibold text-gray-700">Dosage Calculation Practice</h3>
-    <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200 shadow-sm mb-3">
-      <div id="dosage-problem" class="text-base font-medium text-gray-800 mb-2">Loading problem...</div>
-      <p id="dosage-question" class="text-sm text-indigo-700"></p>
-    </div>
-    <div class="flex space-x-2">
-      <input type="number" step="0.01" id="dosage-answer-input" placeholder="Your answer in mL"
-        class="flex-grow p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
-      <button onclick="checkDosageAnswer()" class="p-2 bg-indigo-500 text-white font-semibold rounded-lg hover:bg-indigo-600">Check</button>
-    </div>
-    <div id="dosage-result" class="mt-3 text-center min-h-[1.5rem] font-medium"></div>
-  </section>
+        // Utility function for exponential backoff
+        const MAX_RETRIES = 5;
 
-  <!-- Module 2: Communication Scenarios -->
-  <section class="lg:col-span-2 skill-section p-6 skill-card border-t-4 border-teal-500">
-    <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center">
-      <i class="fas fa-headset mr-2 text-teal-500"></i> Communication & Resolution Simulator
-    </h2>
-    <p class="text-gray-600 mb-4">Practice handling high-stakes patient/provider communication.</p>
-    <button id="scenario-btn" onclick="generateScenario()" class="w-full p-3 bg-teal-600 text-white font-semibold rounded-lg shadow-lg hover:bg-teal-700 mb-6">
-      <i class="fas fa-sync-alt mr-2"></i> Generate New Communication Scenario
-    </button>
-    <div id="scenario-result" class="p-4 bg-gray-50 rounded-xl shadow-inner min-h-[15rem] overflow-y-auto border"></div>
-  </section>
+        async function fetchWithRetry(url, options) {
+            for (let i = 0; i < MAX_RETRIES; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    
+                    if (response.ok) {
+                        return response; // Success, return response object
+                    }
 
-  <!-- Module 3: Personal Skills -->
-  <section class="lg:col-span-3 skill-section p-6 skill-card border-t-4 border-yellow-500">
-    <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center">
-      <i class="fas fa-user-check mr-2 text-yellow-600"></i> Organizational & Personal Skills
-    </h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-        <h3 class="font-bold text-yellow-800 mb-1">Self-Motivation & Focus</h3>
-        <p class="text-sm text-gray-700"><strong>Practice:</strong> Set daily Rx volume goals; use Pomodoro for focus.</p>
-      </div>
-      <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-        <h3 class="font-bold text-yellow-800 mb-1">Time Management & Triage</h3>
-        <p class="text-sm text-gray-700"><strong>Practice:</strong> Prioritize: 1) Stat MD call, 2) PA fax, 3) Refill email, 4) Data entry queue.</p>
-      </div>
-      <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-        <h3 class="font-bold text-yellow-800 mb-1">Attention to Detail & HIPAA</h3>
-        <p class="text-sm text-gray-700"><strong>Practice:</strong> Proofread mock labels; review HIPAA home office checklist.</p>
-      </div>
-    </div>
-  </section>
-</main>
+                    // For 403 or 500 series errors, apply backoff and retry
+                    if (response.status === 403 || response.status >= 500) {
+                        if (i < MAX_RETRIES - 1) {
+                            // Backoff delay
+                            const delay = Math.pow(2, i) * 1000;
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            continue; // Retry
+                        }
+                        // If it's the last attempt and fails, throw the specific error
+                        throw new Error(`Final HTTP status failure: ${response.status}`);
+                    }
+                    
+                    // If it's another non-retryable error (e.g., 400 Bad Request), throw immediately
+                    throw new Error(`Non-retryable HTTP status: ${response.status}`);
 
-<footer class="mt-8 p-4 text-center text-sm text-gray-600 bg-gray-100 rounded-b-xl shadow-inner">
-  <p>&copy; 2025 Remote Pharmacy Tech Hub | Accuracy, Compliance, Professionalism</p>
-</footer>
+                } catch (error) {
+                    // This handles network errors (e.g., connection issues)
+                    if (i === MAX_RETRIES - 1) {
+                        // Throw after final network attempt, including the original error message
+                        throw new Error(`Network failure after ${MAX_RETRIES} retries: ${error.message}`);
+                    }
+                    // Backoff delay for network error
+                    const delay = Math.pow(2, i) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+            // This line ensures the function never implicitly returns undefined.
+            throw new Error("Failed to fetch content after all retries.");
+        }
 
-<script>
-  // --- Dosage Calculation Quiz ---
-  let currentDosageAnswer = 0;
-  function generateDosageProblem() {
-    const weightKg = (Math.random() * (120 - 5) + 5).toFixed(2);
-    const doseMgPerKg = (Math.random() * (20 - 2) + 2).toFixed(2);
-    const strengthMgPerMl = (Math.random() * (100 - 10) + 10).toFixed(1);
-    const totalDoseMg = weightKg * doseMgPerKg;
-    const volumeMl = totalDoseMg / strengthMgPerMl;
-    currentDosageAnswer = parseFloat(volumeMl.toFixed(2));
-    document.getElementById('dosage-problem').innerHTML =
-      `A patient weighs <strong>${weightKg} kg</strong>. Prescribed dosage: <strong>${doseMgPerKg} mg/kg</strong>. Available concentration: <strong>${strengthMgPerMl} mg/mL</strong>.`;
-    document.getElementById('dosage-question').textContent =
-      "How many mL should the patient receive for ONE dose? (Round to 2 decimals)";
-    document.getElementById('dosage-result').innerHTML = '';
-    document.getElementById('dosage-answer-input').value = "";
-  }
-  function checkDosageAnswer() {
-    const userAnswer = parseFloat(document.getElementById('dosage-answer-input').value.trim());
-    const resultDiv = document.getElementById('dosage-result');
-    if (isNaN(userAnswer)) {
-      resultDiv.innerHTML = '<span class="text-yellow-600"><i class="fas fa-exclamation-circle"></i> Enter a valid number.</span>';
-      return;
-    }
-    if (Math.abs(userAnswer - currentDosageAnswer) < 0.01) {
-      resultDiv.innerHTML = `<span class="text-green-600 font-bold"><i class="fas fa-check-circle"></i> Correct!</span> Required volume: ${currentDosageAnswer.toFixed(2)} mL.`;
-    } else {
-      resultDiv.innerHTML = `<span class="text-red-600 font-bold"><i class="fas fa-times-circle"></i> Incorrect.</span> Correct answer: ${currentDosageAnswer.toFixed(2)} mL.`;
-    }
-    setTimeout(generateDosageProblem, 4000);
-  }
+        async function generateScenario() {
+            const resultDiv = document.getElementById('scenario-result');
+            const button = document.getElementById('scenario-btn');
 
-  // --- Offline Scenario Bank ---
-  const scenarios = [
-    {
-     
+            button.disabled = true;
+            resultDiv.innerHTML = `
+                <div class="flex items-center justify-center p-4 text-indigo-600">
+                    <i class="fas fa-spinner fa-spin mr-2"></i> Generating realistic telepharmacy scenario...
+                </div>
+            `;
+
+            const systemPrompt = "You are an expert Telepharmacy Training Simulator. Generate a challenging but realistic remote communication scenario for a certified pharmacy technician. The scenario must focus on a non-technical skill like empathy, multitasking, or conflict resolution.";
+            const userQuery = "Generate a new, unique remote communication scenario in JSON format for a pharmacy technician to practice their verbal resolution skills, focusing on a patient issue like insurance rejection, long wait times, or out-of-stock medication.";
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: scenarioSchema
+                }
+            };
+            
+            try {
+                const response = await fetchWithRetry(GEMINI_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (jsonText) {
+                    const scenario = JSON.parse(jsonText);
+                    renderScenario(scenario);
+                } else {
+                    resultDiv.innerHTML = '<div class="p-4 error-box fade-in"><i class="fas fa-exclamation-triangle"></i> **API Content Error:** Model returned no text response. Try generating again.</div>';
+                }
+            } catch (error) {
+                // Log the full error to the console for detailed debugging
+                console.error("API call error:", error);
+                
+                // Detailed error handling for the user - displays the raw error message
+                let displayError = '';
+                
+                if (error.message.includes('403')) {
+                     displayError = '<span class="text-red-800 font-bold">Access Denied (403).</span> The API key is likely missing or invalid for this environment. Scenario generation cannot proceed.';
+                } else {
+                    // This captures all other errors (including network issues, timeouts, etc.)
+                    displayError = `**Fatal Connection Error:** ${error.message}.`;
+                }
+
+                resultDiv.innerHTML = `<div class="p-4 error-box rounded-lg fade-in"><i class="fas fa-exclamation-circle mr-2"></i> ${displayError}</div>`;
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        function renderScenario(scenario) {
+            const resultDiv = document.getElementById('scenario-result');
+            const { scenarioTitle, patientIssue, technicianTask, suggestedOpening } = scenario;
+
+            resultDiv.innerHTML = `
+                <div class="space-y-4 fade-in">
+                    <h4 class="text-xl font-bold text-red-700">${scenarioTitle}</h4>
+                    <div class="p-3 bg-gray-100 border-l-4 border-red-500 rounded-lg">
+                        <p class="font-semibold text-gray-800">Patient Issue (Your Cue):</p>
+                        <p class="text-gray-600 italic">"${patientIssue}"</p>
+                    </div>
+                    
+                    <div class="p-3 bg-indigo-100 border-l-4 border-indigo-500 rounded-lg">
+                        <p class="font-semibold text-gray-800">Your Primary Task:</p>
+                        <p class="text-indigo-700">${technicianTask}</p>
+                    </div>
+
+                    <div class="bg-yellow-50 p-3 rounded-lg text-sm">
+                        <p class="font-semibold text-yellow-800">Suggested Opening:</p>
+                        <p class="text-yellow-700">"${suggestedOpening}"</p>
+                    </div>
+
+                    <textarea id="tech-response" rows="4" class="w-full p-3 border border-gray-300 rounded-lg shadow-inner focus:ring-green-500 focus:border-green-500" placeholder="Type your professional, empathetic, and compliant response here..."></textarea>
+                    
+                    <button onclick="document.getElementById('tech-response').value = 'Practice Complete! Click \'Generate New Communication Scenario\' again for a new scenario.'" 
+                            class="w-full p-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-150">
+                        Self-Assess & Complete
+                    </button>
+                </div>
+            `;
+        }
+
+        // --- DOSAGE CALCULATION QUIZ (JS Only) ---
+
+        let currentDosageAnswer = 0;
+
+        function generateDosageProblem() {
+            // Updated range and precision for more realistic problems
+            const weightKg = (Math.random() * (120 - 5) + 5).toFixed(2); // 5 to 120 kg
+            const doseMgPerKg = (Math.random() * (20 - 2) + 2).toFixed(2); // 2 to 20 mg/kg
+            const strengthMgPerMl = (Math.random() * (100 - 10) + 10).toFixed(1); // 10 to 100 mg/mL
+
+            const totalDoseMg = weightKg * doseMgPerKg;
+            const volumeMl = totalDoseMg / strengthMgPerMl;
+
+            currentDosageAnswer = parseFloat(volumeMl.toFixed(3)); // Calculate to 3 decimal places internally
+
+            const problemText = `A patient weighs **${weightKg} kg**. The prescribed dosage is **${doseMgPerKg} mg/kg** (per dose). The available liquid concentration is **${strengthMgPerMl} mg/mL**.`;
+
+            document.getElementById('dosage-problem').innerHTML = problemText;
+            document.getElementById('dosage-question').textContent = `How many mL of the solution should the patient receive for ONE dose? (Round to two decimal places)`;
+            document.getElementById('dosage-result').innerHTML = '';
+            document.getElementById('dosage-answer-input').value = '';
+        }
+
+        function checkDosageAnswer() {
+            const inputElement = document.getElementById('dosage-answer-input');
+            const resultDiv = document.getElementById('dosage-result');
+            const userAnswer = parseFloat(inputElement.value.trim());
+
+            if (isNaN(userAnswer)) {
+                resultDiv.innerHTML = '<span class="text-yellow-600"><i class="fas fa-exclamation-circle"></i> Please enter a valid number.</span>';
+                return;
+            }
+
+            // Target answer rounded to 2 decimal places as requested in the question
+            const targetAnswerRounded = parseFloat(currentDosageAnswer.toFixed(2));
+
+            // Check if the user's answer matches the correctly rounded target (within a tight tolerance)
+            if (Math.abs(userAnswer - targetAnswerRounded) < 0.001) {
+                resultDiv.innerHTML = `<span class="text-green-600 font-bold"><i class="fas fa-check-circle"></i> Correct!</span> The required volume is ${targetAnswerRounded.toFixed(2)} mL.`;
+            } else {
+                // Display the correct steps for review
+                // Use a safer method to extract values in case of future changes to problemText structure
+                const problemContent = document.getElementById('dosage-problem').textContent;
+                const weightMatch = problemContent.match(/weighs ([\d\.]+) kg/);
+                const doseMatch = problemContent.match(/dosage is ([\d\.]+) mg\/kg/);
+                const strengthMatch = problemContent.match(/concentration is ([\d\.]+) mg\/mL/);
+                
+                const weight = parseFloat(weightMatch?.[1] || 0);
+                const dosePerKg = parseFloat(doseMatch?.[1] || 0);
+                const strength = parseFloat(strengthMatch?.[1] || 0);
+
+                const step1 = (weight * dosePerKg).toFixed(2); // Total dose in mg
+                
+                resultDiv.innerHTML = `
+                    <span class="text-red-600 font-bold"><i class="fas fa-times-circle"></i> Incorrect.</span>
+                    <p class="text-sm text-left mt-2">
+                        <span class="font-semibold">Step 1 (Total mg):</span> ${weight} kg $\\times$ ${dosePerKg} mg/kg = ${step1} mg (needed)<br>
+                        <span class="font-semibold">Step 2 (Volume):</span> ${step1} mg / ${strength} mg/mL = ${targetAnswerRounded.toFixed(2)} mL (answer)
+                    </p>
+                `;
+            }
+
+            // Generate a new problem immediately after checking
+            setTimeout(generateDosageProblem, 4000);
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            // Robust initialization for the independent Dosage Calculator
+            try {
+                generateDosageProblem();
+            } catch (e) {
+                console.error("Error initializing Dosage Problem:", e);
+                document.getElementById('dosage-problem').innerHTML = `<span class="text-red-600 font-bold"><i class="fas fa-exclamation-circle mr-2"></i> Calculator Error:</span> Could not load problem. Check console for details.`;
+            }
+            
+            // Initialization for the AI-powered Scenario Generator (which may still fail due to environment issues)
+            try {
+                generateScenario();
+            } catch (e) {
+                console.error("Error initializing Scenario Generator:", e);
+                // The error handling inside generateScenario() will update the UI
+            }
+        };
+
+        // Expose functions globally
+        window.generateScenario = generateScenario;
+        window.checkDosageAnswer = checkDosageAnswer;
+    </script>
+
+    <!-- Header Section -->
+    <header class="bg-indigo-700 text-white p-6 rounded-t-xl shadow-2xl mb-8">
+        <h1 class="text-3xl sm:text-4xl font-extrabold flex items-center">
+            <i class="fas fa-user-tie mr-3"></i> Remote Pharmacy Technician Skill Hub 💊
+        </h1>
+        <p class="text-indigo-200 mt-1">Mastering the technical, communicative, and personal skills for success in Telepharmacy.</p>
+    </header>
+
+    <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Module 1: Technical & Calculations -->
+        <section id="technical-skills" class="lg:col-span-1 skill-section p-6 skill-card border-t-4 border-indigo-500">
+            <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center">
+                <i class="fas fa-calculator mr-2 text-indigo-500"></i> Technical Proficiency
+            </h2>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-700">Dosage Calculation Practice</h3>
+                <p class="text-sm text-gray-500 mb-3">Solve the current problem to refresh a critical skill.</p>
+                
+                <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200 shadow-sm mb-3">
+                    <div id="dosage-problem" class="text-base font-medium text-gray-800 mb-2">Loading problem...</div>
+                    <p id="dosage-question" class="text-sm text-indigo-700"></p>
+                </div>
+
+                <div class="flex space-x-2">
+                    <input type="number" step="0.01" id="dosage-answer-input" placeholder="Your answer in mL"
+                        class="flex-grow p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    
+                    <button onclick="checkDosageAnswer()"
+                            class="p-2 bg-indigo-500 text-white font-semibold rounded-lg hover:bg-indigo-600 transition duration-150 shadow-md">
+                        Check
+                    </button>
+                </div>
+                
+                <div id="dosage-result" class="mt-3 text-center min-h-[1.5rem] font-medium"></div>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-800 mt-6 border-t pt-4">Data Entry & Processing</h3>
+            <p class="text-gray-600 mt-2">Practice: Data Entry Simulations, EHR/PMS Navigation exercises, Mock PA forms, Payer Type scenarios.</p>
+
+        </section>
+
+        <!-- Module 2: Communication & Scenario Practice (AI-Powered) -->
+        <section id="communication-skills" class="lg:col-span-2 skill-section p-6 skill-card border-t-4 border-teal-500">
+            <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center">
+                <i class="fas fa-headset mr-2 text-teal-500"></i> Communication & Resolution Simulator
+            </h2>
+            <p class="text-gray-600 mb-4">Practice handling high-stakes patient/provider communication via phone or secure chat. A new scenario is generated below.</p>
+
+            <button id="scenario-btn" onclick="generateScenario()"
+                    class="w-full p-3 bg-teal-600 text-white font-semibold rounded-lg shadow-lg hover:bg-teal-700 transition duration-150 mb-6">
+                <i class="fas fa-sync-alt mr-2"></i> Generate New Communication Scenario
+            </button>
+
+            <div id="scenario-result" class="p-4 bg-gray-50 rounded-xl shadow-inner min-h-[15rem] overflow-y-auto border">
+                <!-- AI-generated scenario and response field appears here -->
+            </div>
+        </section>
+
+        <!-- Module 3: Organizational & Personal Skills -->
+        <section id="personal-skills" class="lg:col-span-3 skill-section p-6 skill-card border-t-4 border-yellow-500">
+            <h2 class="2xl font-bold text-gray-800 section-header flex items-center">
+                <i class="fas fa-user-check mr-2 text-yellow-600"></i> Organizational & Personal Skills
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <h3 class="font-bold text-yellow-800 mb-1">Self-Motivation & Focus</h3>
+                    <p class="text-sm text-gray-700"><strong>Practice:</strong> Set daily processing goals for Rx volume; use the Pomodoro technique to track focused work blocks and breaks (essential for WFH success).</p>
+                </div>
+                
+                <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <h3 class="font-bold text-yellow-800 mb-1">Time Management & Triage</h3>
+                    <p class="text-sm text-gray-700"><strong>Practice:</strong> Simulate prioritizing incoming tasks: 1) Stat call from MD, 2) Faxed PA request, 3) Refill request email, 4) Standard data entry queue.</p>
+                </div>
+                
+                <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <h3 class="font-bold text-yellow-800 mb-1">Attention to Detail & HIPAA</h3>
+                    <p class="text-sm text-gray-700"><strong>Practice:</strong> Proofread mock labels/data entry for NPI/DEA numbers; review your home office setup against a **HIPAA security checklist** (e.g., monitor view, document shredding).</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="mt-8 p-4 text-center text-sm text-gray-600 bg-gray-100 rounded-b-xl shadow-inner">
+        <p>&copy; 2025 Remote Pharmacy Tech Hub | Dedicated to Accuracy, Compliance, and Professionalism.</p>
+    </footer>
+</body>
+</html>
