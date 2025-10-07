@@ -33,6 +33,13 @@
             background-color: #a8a8a8;
             border-radius: 4px;
         }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
     </style>
 </head>
 <body class="p-4 sm:p-8">
@@ -53,6 +60,37 @@
             },
             required: ["scenarioTitle", "patientIssue", "technicianTask", "suggestedOpening"]
         };
+
+        // Utility function for exponential backoff
+        const MAX_RETRIES = 5;
+
+        async function fetchWithRetry(url, options) {
+            for (let i = 0; i < MAX_RETRIES; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) {
+                        return response;
+                    }
+
+                    // For 403 or 500 series errors, apply backoff and retry
+                    if (response.status === 403 || response.status >= 500) {
+                        const delay = Math.pow(2, i) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue; 
+                    }
+                    
+                    // If it's another non-retryable error (e.g., 400 Bad Request, 404 Not Found)
+                    throw new Error(`HTTP status: ${response.status}`);
+
+                } catch (error) {
+                    if (i === MAX_RETRIES - 1) {
+                        throw error; // Throw after final attempt
+                    }
+                    const delay = Math.pow(2, i) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
 
         async function generateScenario() {
             const resultDiv = document.getElementById('scenario-result');
@@ -80,13 +118,11 @@
             };
             
             try {
-                const response = await fetch(GEMINI_API_URL, {
+                const response = await fetchWithRetry(GEMINI_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-
-                if (!response.ok) throw new Error(`HTTP status: ${response.status}`);
 
                 const result = await response.json();
                 const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -95,11 +131,16 @@
                     const scenario = JSON.parse(jsonText);
                     renderScenario(scenario);
                 } else {
-                    resultDiv.innerHTML = '<div class="p-4 text-red-600"><i class="fas fa-exclamation-triangle"></i> Error: Could not parse scenario. Try again.</div>';
+                    resultDiv.innerHTML = '<div class="p-4 text-red-600 fade-in"><i class="fas fa-exclamation-triangle"></i> Error: Could not parse scenario. Try again.</div>';
                 }
             } catch (error) {
                 console.error("API call error:", error);
-                resultDiv.innerHTML = '<div class="p-4 text-red-600"><i class="fas fa-plug"></i> Failed to connect. Check console or try again.</div>';
+                // Update error message to be more explicit about a potential 403 error
+                let displayError = 'Failed to connect. Check console or try again.';
+                if (error.message.includes('403')) {
+                     displayError = '<span class="text-red-800 font-bold">Access Denied (403).</span> Please check API key permissions or try refreshing the environment.';
+                }
+                resultDiv.innerHTML = `<div class="p-4 text-red-600 fade-in"><i class="fas fa-plug"></i> ${displayError}</div>`;
             } finally {
                 button.disabled = false;
             }
@@ -129,7 +170,7 @@
 
                     <textarea id="tech-response" rows="4" class="w-full p-3 border border-gray-300 rounded-lg shadow-inner focus:ring-green-500 focus:border-green-500" placeholder="Type your professional, empathetic, and compliant response here..."></textarea>
                     
-                    <button onclick="document.getElementById('tech-response').value = 'Practice Complete! Click ' + this.textContent + ' again for a new scenario.'" 
+                    <button onclick="document.getElementById('tech-response').value = 'Practice Complete! Click \'Generate New Communication Scenario\' again for a new scenario.'" 
                             class="w-full p-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-150">
                         Self-Assess & Complete
                     </button>
@@ -142,19 +183,20 @@
         let currentDosageAnswer = 0;
 
         function generateDosageProblem() {
-            const weightKg = (Math.random() * (100 - 10) + 10).toFixed(1); // 10 to 100 kg
-            const doseMgPerKg = (Math.random() * (15 - 5) + 5).toFixed(1); // 5 to 15 mg/kg
-            const strengthMgPerMl = (Math.random() * (50 - 10) + 10).toFixed(0); // 10 to 50 mg/mL
+            // Updated range and precision for more realistic problems
+            const weightKg = (Math.random() * (120 - 5) + 5).toFixed(2); // 5 to 120 kg
+            const doseMgPerKg = (Math.random() * (20 - 2) + 2).toFixed(2); // 2 to 20 mg/kg
+            const strengthMgPerMl = (Math.random() * (100 - 10) + 10).toFixed(1); // 10 to 100 mg/mL
 
             const totalDoseMg = weightKg * doseMgPerKg;
             const volumeMl = totalDoseMg / strengthMgPerMl;
 
-            currentDosageAnswer = parseFloat(volumeMl.toFixed(2));
+            currentDosageAnswer = parseFloat(volumeMl.toFixed(3)); // Calculate to 3 decimal places internally
 
-            const problemText = `A physician orders a drug for a patient weighing **${weightKg} kg**. The recommended dosage is **${doseMgPerKg} mg/kg**. The available concentration is **${strengthMgPerMl} mg/mL**.`;
+            const problemText = `A patient weighs **${weightKg} kg**. The prescribed dosage is **${doseMgPerKg} mg/kg** (per dose). The available liquid concentration is **${strengthMgPerMl} mg/mL**.`;
 
             document.getElementById('dosage-problem').innerHTML = problemText;
-            document.getElementById('dosage-question').textContent = `How many mL of the solution should the patient receive? (Round to two decimal places)`;
+            document.getElementById('dosage-question').textContent = `How many mL of the solution should the patient receive for ONE dose? (Round to two decimal places)`;
             document.getElementById('dosage-result').innerHTML = '';
             document.getElementById('dosage-answer-input').value = '';
         }
@@ -169,15 +211,31 @@
                 return;
             }
 
-            // Check if the user's answer is within a tight tolerance (0.01)
-            if (Math.abs(userAnswer - currentDosageAnswer) < 0.01) {
-                resultDiv.innerHTML = `<span class="text-green-600 font-bold"><i class="fas fa-check-circle"></i> Correct!</span> The required volume is ${currentDosageAnswer.toFixed(2)} mL.`;
+            // Target answer rounded to 2 decimal places as requested in the question
+            const targetAnswerRounded = parseFloat(currentDosageAnswer.toFixed(2));
+
+            // Check if the user's answer matches the correctly rounded target (within a tight tolerance)
+            if (Math.abs(userAnswer - targetAnswerRounded) < 0.001) {
+                resultDiv.innerHTML = `<span class="text-green-600 font-bold"><i class="fas fa-check-circle"></i> Correct!</span> The required volume is ${targetAnswerRounded.toFixed(2)} mL.`;
             } else {
-                resultDiv.innerHTML = `<span class="text-red-600 font-bold"><i class="fas fa-times-circle"></i> Incorrect.</span> The correct volume is ${currentDosageAnswer.toFixed(2)} mL. Review your steps: (${parseFloat(document.getElementById('dosage-problem').textContent.match(/(\d+\.?\d*)\s*kg/)?.[1] || 0) * parseFloat(document.getElementById('dosage-problem').textContent.match(/(\d+\.?\d*)\s*mg\/kg/)?.[1] || 0)} mg) / (${parseFloat(document.getElementById('dosage-problem').textContent.match(/(\d+\.?\d*)\s*mg\/mL/)?.[1] || 0)} mg/mL).`;
+                // Display the correct steps for review
+                const weight = parseFloat(document.getElementById('dosage-problem').textContent.match(/(\d+\.?\d*)\s*kg/)?.[1] || 0);
+                const dosePerKg = parseFloat(document.getElementById('dosage-problem').textContent.match(/(\d+\.?\d*)\s*mg\/kg/)?.[1] || 0);
+                const strength = parseFloat(document.getElementById('dosage-problem').textContent.match(/(\d+\.?\d*)\s*mg\/mL/)?.[1] || 0);
+
+                const step1 = (weight * dosePerKg).toFixed(2); // Total dose in mg
+                
+                resultDiv.innerHTML = `
+                    <span class="text-red-600 font-bold"><i class="fas fa-times-circle"></i> Incorrect.</span>
+                    <p class="text-sm text-left mt-2">
+                        <span class="font-semibold">Step 1 (Total mg):</span> ${weight} kg × ${dosePerKg} mg/kg = ${step1} mg (needed)<br>
+                        <span class="font-semibold">Step 2 (Volume):</span> ${step1} mg / ${strength} mg/mL = ${targetAnswerRounded.toFixed(2)} mL (answer)
+                    </p>
+                `;
             }
 
             // Generate a new problem immediately after checking
-            setTimeout(generateDosageProblem, 3000);
+            setTimeout(generateDosageProblem, 4000);
         }
 
         // Initialize on load
