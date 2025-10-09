@@ -131,7 +131,7 @@
             </p>
             <button id="scenario-btn" onclick="generateScenario()"
               class="w-full p-3 bg-teal-600 text-white font-semibold rounded-lg shadow-lg hover:bg-teal-700 transition duration-150 mb-6 disabled:bg-teal-400">
-              <i class="fas fa-sync-alt mr-2"></i> Generate High-Stakes Claims Resolution Scenario
+              <i class="fas fa-sync-alt mr-2"></i> Generate Claims Resolution Scenario
             </button>
             <div id="scenario-result" class="p-4 bg-gray-50 rounded-xl shadow-inner min-h-[15rem] overflow-y-auto border">
               <p class="text-gray-500 text-center mt-16" id="initial-scenario-msg">Click the button above to generate a real-world PBM/Claims scenario for practice.</p>
@@ -165,24 +165,35 @@
           </section>
     </div>
     
-    <!-- MODULE 4: Logistics & Controlled Substances Tracking -->
+    <!-- MODULE 4: Logistics & Controlled Substances Tracking (Now Interactive) -->
     <div id="module-logistics" class="hidden grid grid-cols-1 gap-8">
         <section id="logistics-tracking" class="lg:col-span-3 skill-card p-6 bg-white border-t-4 border-purple-500">
             <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center mb-4">
                 <i class="fas fa-truck-moving mr-2 text-purple-600"></i> Logistics & Controlled Substance Tracking
             </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <p class="text-gray-600 mb-4">
+                This module practices the key duties of **Coordinating Medication Delivery** and **Tracking Controlled Substances** for suspicious activity.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <h3 class="font-bold text-purple-800 mb-1">Medication Delivery Coordination</h3>
-                    <p class="text-sm text-gray-700"><strong>Duty:</strong> Simulate the process of generating labels and working with the shipping department for **Coordinating Medication Delivery** for mail-order services.</p>
+                    <h3 class="font-bold text-purple-800 mb-1">Controlled Substance Documentation Scenario</h3>
+                    <p class="text-sm text-gray-700 mb-3">
+                        A patient fills a 90-day supply of a Schedule III substance on Day 1. On Day 65, the prescriber requests an early refill, stating the patient lost the bottle. This constitutes a potential **unusual pattern**.
+                    </p>
+                    <h4 class="font-semibold text-gray-700 mb-2">Your Task:</h4>
+                    <textarea rows="5" class="w-full p-3 border border-purple-300 rounded-lg focus:ring-purple-500 focus:border-purple-500" placeholder="Document the discrepancy, list your next steps, and state the reporting protocol to ensure compliance."></textarea>
                 </div>
+                
                 <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <h3 class="font-bold text-purple-800 mb-1">Controlled Substance Tracking</h3>
-                    <p class="text-sm text-gray-700"><strong>Duty:</strong> Monitor prescription patterns for unusual activity, ensuring proper documentation for **Tracking Controlled Substances** (Schedule II-V).</p>
-                </div>
-                <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <h3 class="font-bold text-purple-800 mb-1">Proactive Refill Adherence</h3>
-                    <p class="text-sm text-gray-700"><strong>System:</strong> Practice operating on a **10-day look-ahead window** to proactively clear PA or coverage roadblocks before the patient runs out, preventing adherence issues.</p>
+                    <h3 class="font-bold text-purple-800 mb-1">Proactive Refill Adherence System</h3>
+                    <p class="text-sm text-gray-700">
+                        Detail your system for proactively managing refills to ensure the patient never misses a dose.
+                    </p>
+                    <ul class="space-y-2 text-sm text-gray-700 list-disc list-inside mt-3">
+                        <li>Operate on a **10-day look-ahead window** to identify and clear roadblocks.</li>
+                        <li>Proactively contact providers for **expiring PAs** or new prescriptions.</li>
+                        <li>Verify **Logistics** (shipping address, delivery date) during the refill coordination call.</li>
+                    </ul>
                 </div>
             </div>
         </section>
@@ -246,7 +257,7 @@
   </main>
 
   <footer class="mt-10 text-center text-gray-500 text-sm p-4">
-    Portfolio Project by [Your Name] | Demonstrating proficiency in all core remote pharmacy technician duties.
+    Portfolio Project by Chandra M. Harris | Demonstrating proficiency in all core remote pharmacy technician duties.
   </footer>
 
   <script>
@@ -317,14 +328,36 @@
       input.value = '';
     }
 
-    // --- Communication Scenario Logic (Gemini API Call) ---
+    // --- Communication Scenario Logic (Gemini API Call with Fallback) ---
+
+    // Define a static fallback scenario
+    const fallbackScenario = {
+      title: "Static Scenario: Refill Too Soon & PA Expiration",
+      text: `**Patient:** David R. (ID: 45098)\n**Medication:** Specialty Autoimmune Drug (Injectable)\n**Problem:** David called in for his refill 5 days early. The claim rejected.\n**Reject Code:** \`79 - Refill Too Soon\` (NCPDP Error Code) and \`70 - Product/Service Not Covered\` (Checking the EHR, you see the existing Prior Authorization expires in 7 days).\n\n**Goal:** Resolve the Refill Too Soon error, coordinate with the prescriber regarding the expiring PA, and ensure the patient receives the medication on time, demonstrating proactive claims management and adherence coordination.`,
+    };
+
+    function loadScenario(scenario) {
+      const scenarioResultDiv = document.getElementById('scenario-result');
+      scenarioResultDiv.innerHTML = `
+        <div class="p-5">
+          <h3 class="text-lg font-bold text-teal-700 mb-3">${scenario.title}</h3>
+          <p class="text-gray-700 whitespace-pre-wrap">${scenario.text}</p>
+          <div class="mt-4 pt-4 border-t border-gray-200">
+            <h3 class="text-lg font-bold text-teal-700 mb-2">Your Resolution Steps (Practice Area):</h3>
+            <textarea rows="5" class="w-full p-3 border border-teal-300 rounded-lg focus:ring-teal-500 focus:border-teal-500" placeholder="Type your full resolution process here: 1. Acknowledge and Verify, 2. Claims Analysis (Code 79, 70), 3. Action Plan (PA management, Coordination, Overrides)..."></textarea>
+          </div>
+        </div>
+      `;
+    }
 
     async function fetchWithExponentialBackoff(url, options, maxRetries = 5) {
+      // Stub for exponential backoff, always fetching but designed to fail gracefully if key is missing/invalid
       for (let i = 0; i < maxRetries; i++) {
         try {
           const response = await fetch(url, options);
           if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+             // Treat non-200 status as a failure to connect, common in sandbox environments
+             throw new Error(`HTTP error! status: ${response.status}`);
           }
           return response;
         } catch (error) {
@@ -344,10 +377,10 @@
       scenarioButton.disabled = true;
       initialMsg.classList.add('hidden');
       loadingIndicator.classList.remove('hidden');
-      scenarioResultDiv.innerHTML = '';
+      scenarioResultDiv.innerHTML = ''; // Clear previous content
 
-      const systemPrompt = "You are an AI assistant for a remote pharmacy technician training simulator. Your goal is to generate a realistic, high-pressure communication scenario focusing on claims, prior authorization (PA), or adherence. The scenario must clearly state the patient/provider's role, their core problem, and include a specific claims reject code (like 22, 70, or 75) that the technician must resolve via communication. Format the output with clear headings using bold text.";
-      const userQuery = "Generate a new claims resolution scenario. The problem should involve a specialty medication and an urgent adherence issue where the technician needs to troubleshoot a refill too soon or wrong days supply error.";
+      const systemPrompt = "You are an AI assistant for a remote pharmacy technician training simulator. Your goal is to generate a realistic, high-pressure communication scenario focusing on claims, prior authorization (PA), or adherence. The scenario must clearly state the patient/provider's role, their core problem, and include a specific claims reject code (like 22, 70, 75, 79) that the technician must resolve via communication. Format the output with clear bold text and use bullet points for key details. Start with **Patient:** and **Medication:**.";
+      const userQuery = "Generate a new claims resolution scenario. The problem should involve a specialty medication and an urgent adherence issue where the technician needs to troubleshoot a claims error and an expiring Prior Authorization.";
 
       const payload = {
         contents: [{ parts: [{ text: userQuery }] }],
@@ -368,23 +401,16 @@
         const generatedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
         if (generatedText) {
-          // Format the generated text for display
-          scenarioResultDiv.innerHTML = `
-            <div class="p-5">
-              <h3 class="text-lg font-bold text-teal-700 mb-3">SCENARIO DETAILS:</h3>
-              <p class="text-gray-700 whitespace-pre-wrap">${generatedText}</p>
-              <div class="mt-4 pt-4 border-t border-gray-200">
-                <h3 class="text-lg font-bold text-teal-700 mb-2">Your Resolution Steps (Practice Area):</h3>
-                <textarea rows="5" class="w-full p-3 border border-teal-300 rounded-lg focus:ring-teal-500 focus:border-teal-500" placeholder="Type your full resolution process here: 1. Empathetic Opening, 2. Claims Analysis (NCICS), 3. Action Plan (PA, coordination, etc.)..."></textarea>
-              </div>
-            </div>
-          `;
+          loadScenario({ title: "Generated Scenario (Live API)", text: generatedText });
         } else {
-          scenarioResultDiv.innerHTML = '<p class="text-red-500">Error generating scenario. Please try again.</p>';
+          // If response is malformed, use fallback
+          throw new Error("API content structure unexpected."); 
         }
 
       } catch (e) {
-        scenarioResultDiv.innerHTML = '<p class="text-red-500">Failed to connect to the scenario generator. Check API configuration.</p>';
+        // Fallback execution if API call fails
+        console.warn("API call failed, loading static fallback scenario.", e);
+        loadScenario(fallbackScenario);
       } finally {
         loadingIndicator.classList.add('hidden');
         scenarioButton.disabled = false;
