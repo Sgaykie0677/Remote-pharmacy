@@ -1,112 +1,564 @@
-<main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!DOCTYPE html>
+<html lang="en">
 
-  <!-- Module 1: Technical & Calculations -->
-  <section id="technical-skills" class="lg:col-span-1 skill-section p-6 skill-card border-t-4 border-indigo-500">
-    <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center">
-      <i class="fas fa-calculator mr-2 text-indigo-500"></i> Technical Proficiency
-    </h2>
-    <div class="mb-6">
-      <h3 class="text-lg font-semibold text-gray-700">Dosage Calculation Practice</h3>
-      <p class="text-sm text-gray-500 mb-3">Solve the current problem to refresh a critical skill.</p>
-      <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200 shadow-sm mb-3">
-        <div id="dosage-problem" class="text-base font-medium text-gray-800 mb-2">Loading problem...</div>
-        <p id="dosage-question" class="text-sm text-indigo-700"></p>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Remote Specialty Technician: Practice & Portfolio</title>
+  <!-- Load Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Load Font Awesome Icons -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f3f4f6;
+      padding-top: 130px; /* Space for fixed header and navigation */
+    }
+
+    .skill-card {
+      border-radius: 1rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    }
+
+    .skill-card:hover {
+      transform: translateY(-1px);
+    }
+    
+    .nav-tab {
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 0.1s;
+    }
+
+    .nav-tab.active {
+      border-bottom: 4px solid #4f46e5; /* indigo-600 */
+      color: #1f2937; /* gray-900 */
+      font-weight: 600;
+    }
+
+    .correct-answer {
+      background-color: #d1fae5;
+      border-color: #34d399;
+    }
+
+    .incorrect-answer {
+      background-color: #fee2e2;
+      border-color: #f87171;
+    }
+  </style>
+</head>
+
+<body class="p-4 lg:p-8">
+  
+  <!-- Fixed Header and Navigation -->
+  <div class="fixed top-0 left-0 right-0 z-50 bg-white shadow-lg">
+    <header class="text-center p-4">
+      <h1 class="text-2xl font-extrabold text-gray-900">
+        Remote Pharmacy Technician Practice Hub
+      </h1>
+      <p class="text-sm text-indigo-600 font-medium">
+        CPhT, NCICS, and NCMOA Proficiency Demonstrator
+      </p>
+    </header>
+    
+    <!-- Navigation Tabs -->
+    <nav class="border-t border-gray-200 overflow-x-auto">
+      <div class="flex max-w-7xl mx-auto space-x-1 p-2">
+        <div id="tab-data-entry" class="nav-tab p-3 text-sm text-gray-600 border-b-4 border-transparent active" onclick="showModule('data-entry')">
+          <i class="fas fa-keyboard mr-1"></i> Data Processing & Accuracy
+        </div>
+        <div id="tab-claims-resolution" class="nav-tab p-3 text-sm text-gray-600 border-b-4 border-transparent" onclick="showModule('claims-resolution')">
+          <i class="fas fa-headset mr-1"></i> Claims Resolution & PA
+        </div>
+        <div id="tab-compliance-quiz" class="nav-tab p-3 text-sm text-gray-600 border-b-4 border-transparent" onclick="showModule('compliance-quiz')">
+          <i class="fas fa-check-square mr-1"></i> Compliance Quiz (NCICS)
+        </div>
+        <div id="tab-logistics" class="nav-tab p-3 text-sm text-gray-600 border-b-4 border-transparent" onclick="showModule('logistics')">
+          <i class="fas fa-truck-moving mr-1"></i> Logistics & CS Tracking
+        </div>
+        <div id="tab-hipaa-security" class="nav-tab p-3 text-sm text-gray-600 border-b-4 border-transparent" onclick="showModule('hipaa-security')">
+          <i class="fas fa-shield-alt mr-1"></i> HIPAA Security Audit
+        </div>
+        <div id="tab-remote-skills" class="nav-tab p-3 text-sm text-gray-600 border-b-4 border-transparent" onclick="showModule('remote-skills')">
+          <i class="fas fa-wifi mr-1"></i> Remote Work Skills
+        </div>
       </div>
-      <div class="flex space-x-2">
-        <input type="number" step="0.01" id="dosage-answer-input" placeholder="Your answer in mL"
-          class="flex-grow p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
-        <button onclick="checkDosageAnswer()"
-          class="p-2 bg-indigo-500 text-white font-semibold rounded-lg hover:bg-indigo-600 transition duration-150 shadow-md">
-          Check
-        </button>
-      </div>
-      <div id="dosage-result" class="mt-3 text-center min-h-[1.5rem] font-medium"></div>
+    </nav>
+  </div>
+  
+  <!-- Main Content Area - Modules will be hidden/shown here -->
+  <main class="max-w-7xl mx-auto">
+    
+    <!-- MODULE 1: Data Entry & Processing Accuracy (Default View) -->
+    <div id="module-data-entry" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <section id="technical-skills" class="lg:col-span-3 skill-card p-6 bg-white border-t-4 border-indigo-500">
+            <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center mb-4">
+              <i class="fas fa-keyboard mr-2 text-indigo-500"></i> Data Processing, Accuracy, & Calculations
+            </h2>
+            <p class="text-gray-600 mb-4">
+              Practice core duties like **Processing Prescriptions** received digitally, performing detailed **Data Entry** (demographics, prescription details), and ensuring **Attention to Detail** in calculations.
+            </p>
+            <div class="mb-6 max-w-xl">
+              <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Dosage Calculation Practice</h3>
+              <p class="text-sm text-gray-500 mb-3">Ensure **patient safety** by verifying all dosages and volumes before submitting the claim.</p>
+              <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200 shadow-sm mb-3">
+                <div id="dosage-problem" class="text-base font-medium text-gray-800 mb-2">Loading problem...</div>
+                <p id="dosage-question" class="text-sm text-indigo-700"></p>
+              </div>
+              <div class="flex space-x-2">
+                <input type="number" step="0.01" id="dosage-answer-input" placeholder="Your answer in mL"
+                  class="flex-grow p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                <button onclick="checkDosageAnswer()"
+                  class="p-2 bg-indigo-500 text-white font-semibold rounded-lg hover:bg-indigo-600 transition duration-150 shadow-md">
+                  Check
+                </button>
+              </div>
+              <div id="dosage-result" class="mt-3 text-center min-h-[1.5rem] font-medium"></div>
+            </div>
+          </section>
     </div>
-    <h3 class="text-xl font-bold text-gray-800 mt-6 border-t pt-4">Data Entry & Processing</h3>
-    <p class="text-gray-600 mt-2">Practice: Data Entry Simulations, EHR/PMS Navigation exercises, Mock PA forms, Payer Type scenarios.</p>
-  </section>
-
-  <!-- Module 2: Communication & Scenario Practice -->
-  <section id="communication-skills" class="lg:col-span-2 skill-section p-6 skill-card border-t-4 border-teal-500">
-    <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center">
-      <i class="fas fa-headset mr-2 text-teal-500"></i> Communication & Resolution Simulator
-    </h2>
-    <p class="text-gray-600 mb-4">Practice handling high-stakes patient/provider communication via phone or secure chat. A new scenario is generated below.</p>
-    <button id="scenario-btn" onclick="generateScenario()"
-      class="w-full p-3 bg-teal-600 text-white font-semibold rounded-lg shadow-lg hover:bg-teal-700 transition duration-150 mb-6">
-      <i class="fas fa-sync-alt mr-2"></i> Generate New Communication Scenario
-    </button>
-    <div id="scenario-result" class="p-4 bg-gray-50 rounded-xl shadow-inner min-h-[15rem] overflow-y-auto border">
-      <!-- AI-generated scenario and response field appears here -->
+    
+    <!-- MODULE 2: Communication & Claims Resolution -->
+    <div id="module-claims-resolution" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <section id="communication-skills" class="lg:col-span-2 skill-card p-6 bg-white border-t-4 border-teal-500">
+            <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center mb-4">
+              <i class="fas fa-headset mr-2 text-teal-500"></i> Communication, PA, & Insurance Resolution
+            </h2>
+            <p class="text-gray-600 mb-4">
+              Practice **Handling Insurance Issues**, **Managing Prior Authorizations (PAs)**, and strong **Communication Skills** for inbound/outbound calls with patients and providers.
+            </p>
+            <button id="scenario-btn" onclick="generateScenario()"
+              class="w-full p-3 bg-teal-600 text-white font-semibold rounded-lg shadow-lg hover:bg-teal-700 transition duration-150 mb-6 disabled:bg-teal-400">
+              <i class="fas fa-sync-alt mr-2"></i> Generate High-Stakes Claims Resolution Scenario
+            </button>
+            <div id="scenario-result" class="p-4 bg-gray-50 rounded-xl shadow-inner min-h-[15rem] overflow-y-auto border">
+              <p class="text-gray-500 text-center mt-16" id="initial-scenario-msg">Click the button above to generate a real-world PBM/Claims scenario for practice.</p>
+              <div id="loading-indicator" class="hidden text-center text-teal-600 font-medium">
+                <i class="fas fa-spinner fa-spin mr-2"></i> Generating Scenario...
+              </div>
+            </div>
+          </section>
     </div>
-  </section>
 
-  <!-- Module 3: Organizational & Personal Skills -->
-  <section id="personal-skills" class="lg:col-span-3 skill-section p-6 skill-card border-t-4 border-yellow-500">
-    <h2 class="2xl font-bold text-gray-800 section-header flex items-center">
-      <i class="fas fa-user-check mr-2 text-yellow-600"></i> Organizational & Personal Skills
-    </h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-        <h3 class="font-bold text-yellow-800 mb-1">Self-Motivation & Focus</h3>
-        <p class="text-sm text-gray-700"><strong>Practice:</strong> Set daily processing goals for Rx volume; use the Pomodoro technique to track focused work blocks and breaks.</p>
-      </div>
-      <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-        <h3 class="font-bold text-yellow-800 mb-1">Time Management & Triage</h3>
-        <p class="text-sm text-gray-700"><strong>Practice:</strong> Simulate prioritizing incoming tasks: 1) Stat call from MD, 2) Faxed PA request, 3) Refill request email, 4) Standard data entry queue.</p>
-      </div>
-      <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-        <h3 class="font-bold text-yellow-800 mb-1">Attention to Detail & HIPAA</h3>
-        <p class="text-sm text-gray-700"><strong>Practice:</strong> Proofread mock labels/data entry for NPI/DEA numbers; review your home office setup against a HIPAA security checklist.</p>
-      </div>
+    <!-- MODULE 3: Compliance Quiz (NCICS) -->
+    <div id="module-compliance-quiz" class="hidden grid grid-cols-1 gap-8">
+        <section id="compliance-quiz" class="lg:col-span-3 skill-card p-6 bg-white border-t-4 border-red-500">
+            <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center mb-4">
+              <i class="fas fa-check-square mr-2 text-red-500"></i> NCICS/EHR Compliance Practice Quiz
+            </h2>
+            <p class="text-gray-600 mb-4">
+              Test knowledge on regulations, **Reviewing Patient Records** for history, and ensuring the pharmacy is **Ensuring Compliance** with state and federal laws (Payer ID, Days Supply, PA).
+            </p>
+            <div id="quiz-container" class="bg-red-50 p-4 rounded-lg border border-red-200">
+              <!-- Quiz content will be rendered here -->
+            </div>
+            <div id="quiz-navigation" class="mt-4 flex justify-between">
+              <button id="prev-btn" onclick="prevQuestion()" class="p-2 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition duration-150 shadow-md disabled:opacity-50">
+                &leftarrow; Previous
+              </button>
+              <button id="next-btn" onclick="nextQuestion()" class="p-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition duration-150 shadow-md">
+                Next &rightarrow;
+              </button>
+            </div>
+          </section>
     </div>
-  </section>
-
-  <!-- Module 4: Order & Inventory Management -->
-  <section id="order-inventory" class="lg:col-span-3 skill-section p-6 skill-card border-t-4 border-green-500">
-    <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center">
-      <i class="fas fa-truck-loading mr-2 text-green-600"></i> Order & Inventory Management
-    </h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="p-4 bg-green-50 rounded-lg border border-green-200">
-        <h3 class="font-bold text-green-800 mb-1">Mail-Order Fulfillment Practice</h3>
-        <p class="text-sm text-gray-700 mb-2">Simulate selecting courier, verifying address, and confirming delivery type.</p>
-        <label class="block text-sm font-medium text-gray-600 mb-1">Courier:</label>
-        <select class="w-full p-2 border border-gray-300 rounded-lg">
-          <option>FedEx</option>
-          <option>UPS</option>
-          <option>USPS</option>
-        </select>
-        <label class="block text-sm font-medium text-gray-600 mt-3 mb-1">Delivery Type:</label>
-        <select class="w-full p-2 border border-gray-300 rounded-lg">
-          <option>Same-Day</option>
-          <option>2-Day</option>
-          <option>Standard</option>
-        </select>
-      </div>
-      <div class="p-4 bg-green-50 rounded-lg border border-green-200">
-        <h3 class="font-bold text-green-800 mb-1">Inventory Simulation</h3>
-        <p class="text-sm text-gray-700 mb-2">Review stock levels and flag low inventory.</p>
-        <table class="w-full text-sm text-left border border-gray-300 rounded-lg">
-          <thead class="bg-green-100 text-green-800 font-semibold">
-            <tr><th class="p-2">Medication</th><th class="p-2">Stock</th><th class="p-2">Status</th></tr>
-          </thead>
-          <tbody>
-            <tr><td class="p-2">Lisinopril 10mg</td><td class="p-2">12</td><td class="p-2 text-red-600">Low</td></tr>
-            <tr><td class="p-2">Metformin 500mg</td><td class="p-2">45</td><td class="p-2 text-green-600">OK</td></tr>
-            <tr><td class="p-2">Atorvastatin 20mg</td><td class="p-2">8</td><td class="p-2 text-red-600">Low</td></tr>
-          </tbody>
-        </table>
-      </div>
+    
+    <!-- MODULE 4: Logistics & Controlled Substances Tracking -->
+    <div id="module-logistics" class="hidden grid grid-cols-1 gap-8">
+        <section id="logistics-tracking" class="lg:col-span-3 skill-card p-6 bg-white border-t-4 border-purple-500">
+            <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center mb-4">
+                <i class="fas fa-truck-moving mr-2 text-purple-600"></i> Logistics & Controlled Substance Tracking
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <h3 class="font-bold text-purple-800 mb-1">Medication Delivery Coordination</h3>
+                    <p class="text-sm text-gray-700"><strong>Duty:</strong> Simulate the process of generating labels and working with the shipping department for **Coordinating Medication Delivery** for mail-order services.</p>
+                </div>
+                <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <h3 class="font-bold text-purple-800 mb-1">Controlled Substance Tracking</h3>
+                    <p class="text-sm text-gray-700"><strong>Duty:</strong> Monitor prescription patterns for unusual activity, ensuring proper documentation for **Tracking Controlled Substances** (Schedule II-V).</p>
+                </div>
+                <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <h3 class="font-bold text-purple-800 mb-1">Proactive Refill Adherence</h3>
+                    <p class="text-sm text-gray-700"><strong>System:</strong> Practice operating on a **10-day look-ahead window** to proactively clear PA or coverage roadblocks before the patient runs out, preventing adherence issues.</p>
+                </div>
+            </div>
+        </section>
     </div>
-  </section>
 
-  <!-- Module 5: Pharmacist Collaboration -->
-  <section id="pharmacist-collab" class="lg:col-span-3 skill-section p-6 skill-card border-t-4 border-purple-500">
-    <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center">
-      <i class="fas fa-user-md mr-2 text-purple-600"></i> Pharmacist Collaboration Scenarios
-    </h2>
-    <p class="text-gray-600 mb-4">Practice assisting pharmacists with virtual counseling and troubleshooting fulfillment issues.</p>
-    <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
-      <p class="text-sm text-gray-700 mb-2"><strong>Scenario:</strong> A patient reports dizziness after starting a new medication. The pharmacist asks you to review the order and prepare a counseling summary.</p>
-      <textarea rows="
+    <!-- MODULE 5: HIPAA Security & Audit Checklist -->
+    <div id="module-hipaa-security" class="hidden grid grid-cols-1 gap-8">
+        <section id="hipaa-security" class="lg:col-span-3 skill-card p-6 bg-white border-t-4 border-lime-500">
+            <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center mb-4">
+                <i class="fas fa-clipboard-check mr-2 text-lime-600"></i> HIPAA Security & Audit Checklist
+            </h2>
+            <p class="text-gray-600 mb-4">
+                This checklist demonstrates commitment to **Technical Proficiency** and regulatory compliance by ensuring a secure, **HIPAA-compliant workstation** and enforcing the **"Minimum Necessary Rule."**
+            </p>
+            <div class="space-y-4 max-w-2xl mx-auto">
+                <div class="bg-lime-50 p-4 rounded-lg border border-lime-200">
+                    <h3 class="font-bold text-lime-800 mb-2">Remote Workstation Security</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-start text-gray-700"><i class="fas fa-lock mr-3 mt-1 text-lime-600"></i>Work computer requires **strong, unique password** and auto-locks after 5 minutes of inactivity.</li>
+                        <li class="flex items-start text-gray-700"><i class="fas fa-lock mr-3 mt-1 text-lime-600"></i>All work communication is conducted exclusively through **secure, encrypted channels** (VPN/Company Software).</li>
+                        <li class="flex items-start text-gray-700"><i class="fas fa-lock mr-3 mt-1 text-lime-600"></i>Personal and work devices are **never mixed** (no accessing PHI on personal phones/tablets).</li>
+                        <li class="flex items-start text-gray-700"><i class="fas fa-lock mr-3 mt-1 text-lime-600"></i>All paper documents containing PHI are immediately **shredded** or securely stored.</li>
+                    </ul>
+                </div>
+                <div class="bg-lime-50 p-4 rounded-lg border border-lime-200">
+                    <h3 class="font-bold text-lime-800 mb-2">Physical Environment & Privacy</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-start text-gray-700"><i class="fas fa-user-secret mr-3 mt-1 text-lime-600"></i>Workstation is in a **private, non-shared area** where PHI cannot be viewed or overheard.</li>
+                        <li class="flex items-start text-gray-700"><i class="fas fa-user-secret mr-3 mt-1 text-lime-600"></i>Enforced **Clean Desk Policy** (no PHI, prescription labels, or patient lists left visible when away).</li>
+                        <li class="flex items-start text-gray-700"><i class="fas fa-user-secret mr-3 mt-1 text-lime-600"></i>**Screen placement** is configured to prevent observation by anyone else in the household.</li>
+                        <li class="flex items-start text-gray-700"><i class="fas fa-user-secret mr-3 mt-1 text-lime-600"></i>Use of noise-canceling headphones to ensure privacy during **Communicating with patients and providers**.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- MODULE 6: Remote Work Skills (Soft Skills) -->
+    <div id="module-remote-skills" class="hidden grid grid-cols-1 gap-8">
+        <section id="remote-skills" class="lg:col-span-3 skill-card p-6 bg-white border-t-4 border-yellow-500">
+            <h2 class="text-2xl font-bold text-gray-800 section-header flex items-center mb-4">
+              <i class="fas fa-user-check mr-2 text-yellow-600"></i> Organizational & Remote Work Skills
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <h3 class="font-bold text-yellow-800 mb-1">Self-Motivation & Organization</h3>
+                <p class="text-sm text-gray-700"><strong>Skill:</strong> Maintain **well-organized** digital and physical workflows and demonstrate **self-discipline** and initiative without direct supervision (NCMOA focus).</p>
+              </div>
+              <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <h3 class="font-bold text-yellow-800 mb-1">Attention to Detail (Compliance)</h3>
+                <p class="text-sm text-gray-700"><strong>Skill:</strong> Ensure **accuracy** is critical when reviewing information, which ties directly to **Ensuring Compliance** and patient safety.</p>
+              </div>
+              <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <h3 class="font-bold text-yellow-800 mb-1">Customer Service Focus</h3>
+                <p class="text-sm text-gray-700"><strong>Skill:</strong> Practice a **patient-centric mindset** for clear and professional interactions, resolving issues efficiently over the phone.</p>
+              </div>
+            </div>
+          </section>
+    </div>
+
+  </main>
+
+  <footer class="mt-10 text-center text-gray-500 text-sm p-4">
+    Portfolio Project by [Your Name] | Demonstrating proficiency in all core remote pharmacy technician duties.
+  </footer>
+
+  <script>
+    // Global variables provided by the execution environment for Gemini API
+    const apiKey = "";
+    const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
+    
+    // --- Navigation/Tab Logic ---
+    function showModule(moduleId) {
+      const modules = ['data-entry', 'claims-resolution', 'compliance-quiz', 'logistics', 'hipaa-security', 'remote-skills'];
+      
+      // Hide all modules and deactivate all tabs
+      modules.forEach(id => {
+        document.getElementById(`module-${id}`).classList.add('hidden');
+        document.getElementById(`tab-${id}`).classList.remove('active');
+      });
+
+      // Show the selected module and activate the selected tab
+      document.getElementById(`module-${moduleId}`).classList.remove('hidden');
+      document.getElementById(`tab-${moduleId}`).classList.add('active');
+
+      // Scroll to the top of the main content area
+      window.scrollTo({ top: 130, behavior: 'smooth' });
+    }
+    
+    // --- Dosage Calculation Logic ---
+    let currentDosageProblem = {};
+
+    function generateDosageProblem() {
+      // Simple reconstitution problem: Dose (mg) / Concentration (mg/mL) = Volume (mL)
+      const doseMg = (Math.floor(Math.random() * 50) + 50) * 10; // 500 to 1000 mg
+      const concentrationMg = Math.floor(Math.random() * 50) + 100; // 100 to 150 mg
+      const volumeMl = (doseMg / concentrationMg).toFixed(2);
+
+      currentDosageProblem = {
+        doseMg: doseMg,
+        concentrationMg: concentrationMg,
+        volumeMl: parseFloat(volumeMl)
+      };
+
+      document.getElementById('dosage-problem').innerHTML = `
+        A physician orders **${doseMg} mg** of an antibiotic. The drug is supplied as a liquid suspension with a concentration of **${concentrationMg} mg/mL**.
+      `;
+      document.getElementById('dosage-question').textContent = `How many milliliters (mL) must be administered? (Round to two decimal places.)`;
+    }
+
+    function checkDosageAnswer() {
+      const input = document.getElementById('dosage-answer-input');
+      const resultDiv = document.getElementById('dosage-result');
+      const userAnswer = parseFloat(input.value);
+
+      if (isNaN(userAnswer)) {
+        resultDiv.className = 'mt-3 text-red-600 font-medium';
+        resultDiv.textContent = 'Please enter a numerical answer.';
+        return;
+      }
+
+      // Check against the stored, precise answer
+      if (Math.abs(userAnswer - currentDosageProblem.volumeMl) < 0.01) {
+        resultDiv.className = 'mt-3 text-green-600 font-medium';
+        resultDiv.textContent = 'Correct! You calculated the correct volume.';
+      } else {
+        resultDiv.className = 'mt-3 text-red-600 font-medium';
+        resultDiv.textContent = `Incorrect. The correct answer is ${currentDosageProblem.volumeMl} mL. Try the next problem.`;
+      }
+      // Generate a new problem immediately
+      setTimeout(generateDosageProblem, 1000);
+      input.value = '';
+    }
+
+    // --- Communication Scenario Logic (Gemini API Call) ---
+
+    async function fetchWithExponentialBackoff(url, options, maxRetries = 5) {
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          const response = await fetch(url, options);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response;
+        } catch (error) {
+          if (i === maxRetries - 1) throw error;
+          const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+    
+    async function generateScenario() {
+      const scenarioResultDiv = document.getElementById('scenario-result');
+      const loadingIndicator = document.getElementById('loading-indicator');
+      const scenarioButton = document.getElementById('scenario-btn');
+      const initialMsg = document.getElementById('initial-scenario-msg');
+
+      scenarioButton.disabled = true;
+      initialMsg.classList.add('hidden');
+      loadingIndicator.classList.remove('hidden');
+      scenarioResultDiv.innerHTML = '';
+
+      const systemPrompt = "You are an AI assistant for a remote pharmacy technician training simulator. Your goal is to generate a realistic, high-pressure communication scenario focusing on claims, prior authorization (PA), or adherence. The scenario must clearly state the patient/provider's role, their core problem, and include a specific claims reject code (like 22, 70, or 75) that the technician must resolve via communication. Format the output with clear headings using bold text.";
+      const userQuery = "Generate a new claims resolution scenario. The problem should involve a specialty medication and an urgent adherence issue where the technician needs to troubleshoot a refill too soon or wrong days supply error.";
+
+      const payload = {
+        contents: [{ parts: [{ text: userQuery }] }],
+        systemInstruction: {
+          parts: [{ text: systemPrompt }]
+        },
+      };
+
+      try {
+        const fullUrl = `${apiUrl}?key=${apiKey}`;
+        const response = await fetchWithExponentialBackoff(fullUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        const generatedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (generatedText) {
+          // Format the generated text for display
+          scenarioResultDiv.innerHTML = `
+            <div class="p-5">
+              <h3 class="text-lg font-bold text-teal-700 mb-3">SCENARIO DETAILS:</h3>
+              <p class="text-gray-700 whitespace-pre-wrap">${generatedText}</p>
+              <div class="mt-4 pt-4 border-t border-gray-200">
+                <h3 class="text-lg font-bold text-teal-700 mb-2">Your Resolution Steps (Practice Area):</h3>
+                <textarea rows="5" class="w-full p-3 border border-teal-300 rounded-lg focus:ring-teal-500 focus:border-teal-500" placeholder="Type your full resolution process here: 1. Empathetic Opening, 2. Claims Analysis (NCICS), 3. Action Plan (PA, coordination, etc.)..."></textarea>
+              </div>
+            </div>
+          `;
+        } else {
+          scenarioResultDiv.innerHTML = '<p class="text-red-500">Error generating scenario. Please try again.</p>';
+        }
+
+      } catch (e) {
+        scenarioResultDiv.innerHTML = '<p class="text-red-500">Failed to connect to the scenario generator. Check API configuration.</p>';
+      } finally {
+        loadingIndicator.classList.add('hidden');
+        scenarioButton.disabled = false;
+      }
+    }
+    
+    // --- Quiz Logic ---
+    let quizData = {
+        "questions": [{
+            "question": "Which HIPAA identifier is primarily designed to uniquely identify the health plans, clearinghouses, and providers involved in electronic transactions, and is crucial for accurate claims adjudication?",
+            "answerOptions": [{ "text": "National Provider Identifier (NPI)", "isCorrect": false }, { "text": "Payer Identification Number (Payer ID)", "isCorrect": true }, { "text": "Drug Enforcement Administration (DEA) Number", "isCorrect": false }, { "text": "Tax Identification Number (TIN)", "isCorrect": false }],
+            "rationale": "The **Payer ID** is the critical number used by the pharmacy system to route the electronic claim to the specific insurance carrier for payment processing. This is a core NCICS duty."
+        }, {
+            "question": "When a claim rejects with the code '70 - Product/Service Not Covered' for a specialty drug, what is the technician's primary duty?",
+            "answerOptions": [{ "text": "Contact the patient and tell them to find a cheaper alternative.", "isCorrect": false }, { "text": "Bypass the error and submit the claim to a secondary insurance plan.", "isCorrect": false }, { "text": "Proactively **manage the Prior Authorization (PA)** process by contacting the provider for documentation or checking for formulary alternatives.", "isCorrect": true }, { "text": "Only process the prescription if the patient agrees to pay the full cash price.", "isCorrect": false }],
+            "rationale": "A 'Not Covered' rejection often means the drug needs a PA or therapeutic interchange. The duty is to proactively troubleshoot and **manage the PA** with the provider's office."
+        }, {
+            "question": "If you notice a high volume of patients reporting they run out of medication early, what is a likely administrative error to investigate first?",
+            "answerOptions": [{ "text": "The pharmacy is consistently using the wrong NDC (National Drug Code).", "isCorrect": false }, { "text": "The wrong Sig (directions for use) is being entered into the system by the technician.", "isCorrect": false }, { "text": "The **Days Supply (DS)** entered into the pharmacy system is consistently incorrect or lower than the patient's prescribed interval.", "isCorrect": true }, { "text": "Patients are not properly disposing of their sharps containers.", "isCorrect": false }],
+            "rationale": "Running out of medication early is most often a direct result of an administrative error where the **Days Supply (DS)** entered doesn't match the prescription's directions."
+        }, {
+            "question": "During a refill call, the patient states they recently moved to a new state. Which of the following is the most immediate compliance concern related to their prescription?",
+            "answerOptions": [{ "text": "Confirming their new zip code for mail order tracking.", "isCorrect": false }, { "text": "Checking if the prescribing physician is licensed in the new state.", "isCorrect": false }, { "text": "Verifying that the pharmacy is licensed and authorized to **dispense medication into the patient's new state of residence**.", "isCorrect": true }, { "text": "Updating their primary insurance Payer ID.", "isCorrect": false }],
+            "rationale": "Pharmacy licensure is state-specific. **Ensuring compliance** means confirming the pharmacy holds a non-resident license for the new state of delivery."
+        }, {
+            "question": "A physician's office faxes a refill request for an opioid pain medication (a Schedule II controlled substance). What is the critical compliance task that must be confirmed before **Processing Prescriptions**?",
+            "answerOptions": [{ "text": "Checking for potential drug-drug interactions with other medications the patient is currently taking.", "isCorrect": false }, { "text": "Verifying that the prescription is not a fax and is an original hard copy or was sent via approved electronic prescribing (e-prescribing).", "isCorrect": true }, { "text": "Ensuring the patient's copay is zero dollars.", "isCorrect": false }, { "text": "Calculating the patient's next refill date based on the prescription date.", "isCorrect": false }],
+            "rationale": "Federal regulations typically prohibit faxes for Schedule II controlled substances (with limited exceptions), requiring an original signed prescription or compliant e-script. This is part of the duty of **Tracking Controlled Substances**."
+        }]
+    };
+
+    let currentQuestionIndex = 0;
+    let userAnswers = {}; // Store user's selected option index for each question
+
+    function renderQuestion() {
+      const quizContainer = document.getElementById('quiz-container');
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+
+      if (currentQuestionIndex >= quizData.questions.length) {
+        showQuizSummary();
+        return;
+      }
+      
+      const questionData = quizData.questions[currentQuestionIndex];
+      const questionNumber = currentQuestionIndex + 1;
+      const totalQuestions = quizData.questions.length;
+      const savedAnswerIndex = userAnswers[currentQuestionIndex] !== undefined ? userAnswers[currentQuestionIndex] : -1;
+
+      let optionsHtml = questionData.answerOptions.map((option, index) => {
+        const isSelected = index === savedAnswerIndex;
+        let classes = 'p-3 mb-2 border rounded-lg cursor-pointer transition duration-100 hover:bg-gray-100';
+        
+        // If an answer has been submitted, show correct/incorrect styling
+        if (savedAnswerIndex !== -1) {
+          if (option.isCorrect) {
+            classes += ' correct-answer border-green-500';
+          } else if (isSelected) {
+            classes += ' incorrect-answer border-red-500';
+          } else {
+            classes += ' bg-white border-gray-200 opacity-60';
+          }
+        } else {
+          // Normal state
+          classes += isSelected ? ' bg-red-100 border-red-400' : ' bg-white border-gray-200';
+        }
+
+        return `
+          <div 
+            class="${classes}" 
+            onclick="selectAnswer(${index})"
+            data-index="${index}"
+          >
+            <span class="font-semibold">${String.fromCharCode(65 + index)}.</span> ${option.text}
+          </div>
+        `;
+      }).join('');
+
+      // Add rationale if an answer has been selected
+      let rationaleHtml = '';
+      if (savedAnswerIndex !== -1) {
+        const rationaleColor = questionData.answerOptions[savedAnswerIndex].isCorrect ? 'text-green-700' : 'text-red-700';
+        rationaleHtml = `
+          <div class="mt-4 p-3 border-t border-gray-300">
+            <h4 class="font-bold ${rationaleColor}">Rationale:</h4>
+            <p class="text-sm text-gray-700">${questionData.rationale}</p>
+          </div>
+        `;
+      }
+
+      quizContainer.innerHTML = `
+        <div class="mb-4 text-sm font-medium text-gray-600">
+          Question ${questionNumber} of ${totalQuestions}
+        </div>
+        <h3 class="text-lg font-bold text-gray-800 mb-4">${questionData.question}</h3>
+        <div id="options-container" class="space-y-2">
+          ${optionsHtml}
+        </div>
+        ${rationaleHtml}
+      `;
+
+      // Update navigation buttons
+      prevBtn.disabled = currentQuestionIndex === 0;
+      nextBtn.textContent = currentQuestionIndex === totalQuestions - 1 ? 'Finish Quiz' : 'Next \u2192';
+    }
+
+    function selectAnswer(index) {
+      if (userAnswers[currentQuestionIndex] !== undefined) return; // Prevent changing answer once selected
+
+      userAnswers[currentQuestionIndex] = index;
+      renderQuestion();
+    }
+
+    function nextQuestion() {
+      if (currentQuestionIndex < quizData.questions.length - 1) {
+        currentQuestionIndex++;
+      } else if (currentQuestionIndex === quizData.questions.length - 1) {
+        currentQuestionIndex++; // Move to summary state
+      }
+      renderQuestion();
+    }
+
+    function prevQuestion() {
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+      }
+      renderQuestion();
+    }
+
+    function showQuizSummary() {
+      const quizContainer = document.getElementById('quiz-container');
+      const navigation = document.getElementById('quiz-navigation');
+      
+      let correctCount = 0;
+      quizData.questions.forEach((q, i) => {
+        const selectedIndex = userAnswers[i];
+        if (selectedIndex !== undefined && q.answerOptions[selectedIndex].isCorrect) {
+          correctCount++;
+        }
+      });
+
+      const totalQuestions = quizData.questions.length;
+      const score = Math.round((correctCount / totalQuestions) * 100);
+      const feedback = score >= 80 ? 'Excellent! You demonstrated strong compliance and claims knowledge.' : 'Good effort! Review the rationales to reinforce key compliance concepts.';
+
+      quizContainer.innerHTML = `
+        <div class="text-center p-6">
+          <h3 class="text-3xl font-bold text-red-600 mb-2">Quiz Complete!</h3>
+          <p class="text-5xl font-extrabold text-gray-800 mb-4">${correctCount} / ${totalQuestions}</p>
+          <p class="text-xl font-medium text-gray-700 mb-4">Your Score: ${score}%</p>
+          <p class="text-lg text-gray-600">${feedback}</p>
+          <button onclick="restartQuiz()" class="mt-6 p-3 bg-indigo-500 text-white font-semibold rounded-lg hover:bg-indigo-600 transition duration-150 shadow-md">
+            Review Questions
+          </button>
+        </div>
+      `;
+      navigation.style.display = 'none';
+    }
+
+    function restartQuiz() {
+        currentQuestionIndex = 0;
+        // userAnswers = {}; // Uncomment to fully reset answers
+        document.getElementById('quiz-navigation').style.display = 'flex';
+        renderQuestion();
+    }
+
+    // Initialize on load
+    window.onload = function() {
+      generateDosageProblem();
+      renderQuestion();
+      showModule('data-entry'); // Show the first module on load
+    };
+
+  </script>
+</body>
+
+</html>
